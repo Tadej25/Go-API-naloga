@@ -1,4 +1,4 @@
-```markdown
+
 # Go API naloga
 
 A basic API for displaying temperature data for cities.
