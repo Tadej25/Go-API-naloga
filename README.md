@@ -55,23 +55,6 @@ The API documentation is generated using Swagger. To access the Swagger UI, navi
 - [gin-swagger](https://github.com/swaggo/gin-swagger) - A Swagger 2.0 documentation generator for Gin
 - [swaggo/files](https://github.com/swaggo/files) - A Swagger 2.0 file serving package for Gin
 
-## Contributing
-
-Please read [CONTRIBUTING.md](https://github.com/your-username/Go-API-naloga/blob/main/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](https://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your-username/Go-API-naloga/tags).
-
 ## Authors
 
-- **Your Name** - *Initial work* - [your-username](https://github.com/your-username)
-
-See also the list of [contributors](https://github.com/your-username/Go-API-naloga/contributors) who participated in this project.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/your-username/Go-API-naloga/blob/main/LICENSE.md) file for details.
-```
-
-Remember to replace `your-username` with your actual GitHub username. Also, update the project details, authors, and any other relevant information in the `README.md` file.
+- **Tadej Lipar** - *Initial work* - [Tadej25](https://github.com/Tadej25)
