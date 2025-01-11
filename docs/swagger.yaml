@@ -1,0 +1,110 @@
+basePath: /
+definitions:
+  models.City:
+    properties:
+      averageTemperature:
+        type: number
+      max:
+        type: number
+      min:
+        type: number
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Basic API for displaying temperature data for cities.
+  title: Go API naloga
+  version: "1.0"
+paths:
+  /AverageTemperatures:
+    get:
+      description: Gets the average temperatures for cities above or below a given
+        value
+      parameters:
+      - description: Type of filter (above|below)
+        enum:
+        - above
+        - below
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: Value for filter
+        in: query
+        name: value
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.City'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Gets average temperatures for cities above or below a given value
+  /cities:
+    get:
+      description: Gets the city names average temperatures max and min temperatures
+        for all cities
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.City'
+            type: array
+        "404":
+          description: Not Found
+          schema: {}
+      summary: Get all cities
+  /city/{name}:
+    get:
+      description: Gets the average temperatures max and min temperatures for a specific
+        city
+      parameters:
+      - description: City name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.City'
+        "404":
+          description: Not Found
+          schema: {}
+      summary: Get city by name
+  /reload:
+    post:
+      description: Reloads data from the CSV file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data reloaded successfully
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - basicAuth: []
+      summary: Reload data from CSV file
+security:
+- basicAuth: []
+swagger: "2.0"

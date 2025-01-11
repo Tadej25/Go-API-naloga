@@ -1,0 +1,164 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Basic API for displaying temperature data for cities.",
+        "title": "Go API naloga",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "paths": {
+        "/AverageTemperatures": {
+            "get": {
+                "description": "Gets the average temperatures for cities above or below a given value",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Gets average temperatures for cities above or below a given value",
+                "parameters": [
+                    {
+                        "enum": [
+                            "above",
+                            "below"
+                        ],
+                        "type": "string",
+                        "description": "Type of filter (above|below)",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Value for filter",
+                        "name": "value",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.City"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/cities": {
+            "get": {
+                "description": "Gets the city names average temperatures max and min temperatures for all cities",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get all cities",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.City"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/city/{name}": {
+            "get": {
+                "description": "Gets the average temperatures max and min temperatures for a specific city",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get city by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "City name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.City"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/reload": {
+            "post": {
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "description": "Reloads data from the CSV file",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Reload data from CSV file",
+                "responses": {
+                    "200": {
+                        "description": "Data reloaded successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.City": {
+            "type": "object",
+            "properties": {
+                "averageTemperature": {
+                    "type": "number"
+                },
+                "max": {
+                    "type": "number"
+                },
+                "min": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "security": [
+        {
+            "basicAuth": []
+        }
+    ]
+}
