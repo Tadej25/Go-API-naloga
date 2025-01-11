@@ -107,4 +107,7 @@ paths:
       summary: Reload data from CSV file
 security:
 - basicAuth: []
+securityDefinitions:
+  BasicAuth:
+    type: basic
 swagger: "2.0"

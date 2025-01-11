@@ -6,9 +6,6 @@ package main
 // @BasePath /
 // @Security basicAuth
 
-// @SecurityScheme basicAuth
-// @BasicAuth
-
 import (
 	"fmt"
 
@@ -23,7 +20,9 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// Main function
+// @securityDefinitions.basic BasicAuth
+// @in header
+// @name Authorization
 func main() {
 	err := controllers.ReadCsv()
 	if err != nil {

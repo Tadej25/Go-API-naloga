@@ -163,6 +163,11 @@ const docTemplate = `{
             }
         }
     },
+    "securityDefinitions": {
+        "BasicAuth": {
+            "type": "basic"
+        }
+    },
     "security": [
         {
             "basicAuth": []

@@ -8,6 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	Username = "admin"
+	Password = "password"
+)
+
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get the Authorization header

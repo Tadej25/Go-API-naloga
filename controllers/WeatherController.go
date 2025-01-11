@@ -20,11 +20,6 @@ import (
 var cityMap = make(map[string]*models.CityCSV)
 var cityArray []models.City
 
-const (
-	Username = "admin"
-	Password = "password"
-)
-
 // @Summary Get all cities
 // @Description Gets the city names average temperatures max and min temperatures for all cities
 // @Produce  json

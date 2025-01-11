@@ -156,6 +156,11 @@
             }
         }
     },
+    "securityDefinitions": {
+        "BasicAuth": {
+            "type": "basic"
+        }
+    },
     "security": [
         {
             "basicAuth": []
