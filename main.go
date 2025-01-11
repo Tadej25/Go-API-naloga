@@ -56,11 +56,16 @@ var cityArray []City
 
 // Main function
 func main() {
-	readCsv()
+	err := readCsv()
+	if err != nil {
+		fmt.Println("Error reading CSV:", err)
+		return
+	}
 	router := gin.Default()
 	router.GET("/cities", GetCities)
 	router.GET("/city/:name", GetCityByName)
 	router.GET("/AverageTemperatures", GetAverageTemperatures)
+	router.POST("reload", Reload)
 	router.Run("localhost:8080")
 }
 func GetCities(c *gin.Context) {
@@ -79,7 +84,7 @@ func getCityByName(name string) (City, error) {
 		return c.(City).Name == name
 	}).First()
 	if city == nil {
-		return City{}, errors.New("City not found")
+		return City{}, errors.New("city not found")
 	}
 	result := city.(City)
 	return result, nil
@@ -93,7 +98,7 @@ func GetAverageTemperatures(c *gin.Context) {
 	valuef, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid 'value' query parameter. Please provide a valid number.",
+			"error": "Invalid 'value' query parameter. Please provide a valid number",
 		})
 		return
 	}
@@ -106,21 +111,20 @@ func GetAverageTemperatures(c *gin.Context) {
 	} else {
 		// Handle invalid or missing type
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid or missing 'type' query parameter. Use 'above' or 'below'.",
+			"error": "Invalid or missing 'type' query parameter. Use 'above' or 'below'",
 		})
 		return
 	}
 	result, err := getAverageTemperatures(valuef, above)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
-			"error": "Error retrieving average temperatures.",
+			"error": "Error retrieving average temperatures",
 		})
 		return
 	}
 	c.IndentedJSON(http.StatusOK, result)
 
 }
-
 func getAverageTemperatures(value float64, above bool) ([]City, error) {
 	cities := From(cityArray).Where(func(c interface{}) bool {
 		if above {
@@ -130,7 +134,7 @@ func getAverageTemperatures(value float64, above bool) ([]City, error) {
 	}).Results()
 
 	if len(cities) == 0 {
-		return nil, errors.New("No cities found that meet the criteria.")
+		return nil, errors.New("no cities found that meet the criteria")
 	}
 
 	results := make([]City, len(cities))
@@ -140,17 +144,26 @@ func getAverageTemperatures(value float64, above bool) ([]City, error) {
 
 	return results, nil
 }
+func Reload(c *gin.Context) {
+	err := readCsv()
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Data reloaded successfully"})
+}
 
-func readCsv() {
+func readCsv() error {
+	cityMap = make(map[string]*CityCSV)
+	cityArray = nil
+
 	path, err := readOrCreateConfig()
 	if err != nil {
-		fmt.Println("Error reading file:", err)
-		return
+		return errors.New("error reading config file")
 	}
 	file, err := os.Open(".\\" + path)
 	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return
+		return errors.New("error opening file: " + path)
 	}
 	defer file.Close()
 	fmt.Println("Reading...")
@@ -170,6 +183,7 @@ func readCsv() {
 		//fmt.Printf("City: %s, First Temperature: %.2f°C\n", city.Name, city.Average)
 	}
 	fmt.Printf("Done! Calculating took %s\n", time.Since(startTime))
+	return nil
 }
 func readFile(file *os.File) {
 	// Move the file pointer to the start of the chunk
