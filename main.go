@@ -45,7 +45,7 @@ var cityArray []City
 
 // Main function
 func main() {
-	readCsv()
+	// readCsv()
 	router := gin.Default()
 	router.GET("/test", TestApiCall)
 	router.Run("localhost:8080")
