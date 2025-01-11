@@ -1,2 +1,3 @@
 /data.config
-/measurements.txt
+*.txt
+*.csv

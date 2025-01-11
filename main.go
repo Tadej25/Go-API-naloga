@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -9,10 +10,11 @@ import (
 	"strings"
 	"time"
 
+	. "github.com/ahmetb/go-linq/v3"
 	"github.com/gin-gonic/gin"
 )
 
-type City struct {
+type CityCSV struct {
 	Name         string    `json:"name"`
 	Temperatures []float64 `json:"temperatures"`
 	Average      float64   `json:"average"`
@@ -20,10 +22,17 @@ type City struct {
 	Min          float64   `json:"min"`
 }
 
-func (c *City) AddTemperature(temp float64) {
+type City struct {
+	Name               string  `json:"name"`
+	AverageTemperature float64 `json:"averageTemperature"`
+	Max                float64 `json:"max"`
+	Min                float64 `json:"min"`
+}
+
+func (c *CityCSV) AddTemperature(temp float64) {
 	c.Temperatures = append(c.Temperatures, temp)
 }
-func processCity(c *City) {
+func processCity(c *CityCSV) {
 	total := 0.0
 	max := 0.0
 	min := 0.0
@@ -37,22 +46,101 @@ func processCity(c *City) {
 		}
 	}
 	c.Average = total / float64(len(c.Temperatures))
+	c.Max = max
+	c.Min = min
 }
 
 // var cityMap []City
-var cityMap = make(map[string]*City)
+var cityMap = make(map[string]*CityCSV)
 var cityArray []City
 
 // Main function
 func main() {
-	// readCsv()
+	readCsv()
 	router := gin.Default()
-	router.GET("/test", TestApiCall)
+	router.GET("/cities", GetCities)
+	router.GET("/city/:name", GetCityByName)
+	router.GET("/AverageTemperatures", GetAverageTemperatures)
 	router.Run("localhost:8080")
 }
-func TestApiCall(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, gin.H{"message": "API is working!"})
+func GetCities(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, cityArray)
 }
+func GetCityByName(c *gin.Context) {
+	city, err := getCityByName(c.Param("name"))
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "City not found"})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, city)
+}
+func getCityByName(name string) (City, error) {
+	city := From(cityArray).Where(func(c interface{}) bool {
+		return c.(City).Name == name
+	}).First()
+	if city == nil {
+		return City{}, errors.New("City not found")
+	}
+	result := city.(City)
+	return result, nil
+}
+func GetAverageTemperatures(c *gin.Context) {
+	// Retrieve the 'type' query parameter
+	filterType := c.Query("type") // Returns the value of `type` or an empty string if not provided
+
+	// Retrieve the 'value' query parameter
+	value := c.Query("value")
+	valuef, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid 'value' query parameter. Please provide a valid number.",
+		})
+		return
+	}
+	var above bool
+	// Process the query parameters
+	if filterType == "above" {
+		above = true
+	} else if filterType == "below" {
+		above = false
+	} else {
+		// Handle invalid or missing type
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid or missing 'type' query parameter. Use 'above' or 'below'.",
+		})
+		return
+	}
+	result, err := getAverageTemperatures(valuef, above)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{
+			"error": "Error retrieving average temperatures.",
+		})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, result)
+
+}
+
+func getAverageTemperatures(value float64, above bool) ([]City, error) {
+	cities := From(cityArray).Where(func(c interface{}) bool {
+		if above {
+			return c.(City).AverageTemperature >= value
+		}
+		return c.(City).AverageTemperature <= value
+	}).Results()
+
+	if len(cities) == 0 {
+		return nil, errors.New("No cities found that meet the criteria.")
+	}
+
+	results := make([]City, len(cities))
+	for i, city := range cities {
+		results[i] = city.(City)
+	}
+
+	return results, nil
+}
+
 func readCsv() {
 	path, err := readOrCreateConfig()
 	if err != nil {
@@ -76,9 +164,9 @@ func readCsv() {
 	fmt.Println("Calculating...")
 	startTime = time.Now()
 	for _, city := range cityMap {
-		cityArray[index] = *city
-		index++
 		processCity(city)
+		cityArray[index] = City{Name: city.Name, AverageTemperature: city.Average, Max: city.Max, Min: city.Min}
+		index++
 		//fmt.Printf("City: %s, First Temperature: %.2f°C\n", city.Name, city.Average)
 	}
 	fmt.Printf("Done! Calculating took %s\n", time.Since(startTime))
@@ -113,7 +201,7 @@ func processLine(line string) {
 	if city, exists := cityMap[cityName]; exists {
 		city.AddTemperature(temperature)
 	} else {
-		newCity := &City{Name: cityName}
+		newCity := &CityCSV{Name: cityName}
 		newCity.AddTemperature(temperature)
 		cityMap[cityName] = newCity
 	}
@@ -121,7 +209,7 @@ func processLine(line string) {
 
 func readOrCreateConfig() (string, error) {
 	filePath := "data.config"
-	defaultValue := "PATH=measures.txt"
+	defaultValue := "PATH=measaures.txt"
 	// Try to open the file
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -141,6 +229,7 @@ func readOrCreateConfig() (string, error) {
 	var path string
 	scanner := bufio.NewScanner(file)
 	if scanner.Scan() {
+		// The first line should contain the path to the measurements file
 		path = scanner.Text()
 	}
 
